@@ -4,7 +4,6 @@
 #include <string>
 
 #include <ros/ros.h>
-#include <sensor_msgs/Image.h>
 #include <std_msgs/Float32MultiArray.h>
 
 #include <pcl_ros/point_cloud.h>
@@ -17,6 +16,7 @@
 #include <pcl/features/normal_3d.h>
 #include <pcl_msgs/PolygonMesh.h>
 #include <pcl/filters/extract_indices.h>
+#include <pcl_conversions/pcl_conversions.h>
 
 #include <std_srvs/Empty.h>
 
@@ -25,7 +25,7 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 
-namespace mesh_to_image_map {
+namespace mesh_to_traversability {
 
 std::string fileType(std::string fichier);
 void gammaCorrection(cv::Mat& src, cv::Mat& dst, float fGamma);
@@ -33,7 +33,7 @@ constexpr bool kDefaultVerbose = false;
 constexpr bool kDefaultLoadFromFile = false;
 constexpr bool kDefaultAutomaticPub = false;
 static double kDefaultImageScale = 20.0;
-static double kDefaultZThreshold = 100.0;
+static double kDefaultZThreshold = 10.0;
 static const std::string kDefaultFile = "/home/eth/mesh.pcd";
 
 class MeshToImageMapConverter {
@@ -44,7 +44,7 @@ public:
   // service callBack
   bool loadMeshCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response); // service CallBak to load mesh from a file
   bool publishCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
-  // Datacallback
+  // Msgcallback
   void meshCallback(const pcl::PointCloud<pcl::PointXYZRGB>& mesh);
 
 private:

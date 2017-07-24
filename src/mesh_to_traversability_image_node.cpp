@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
   ros::NodeHandle private_nh("~");
 
   // Creating the object to do the work.
-  mesh_to_image_map::MeshToImageMapConverter mesh_to_image_map_converter(nh, private_nh);
+  mesh_to_traversability::MeshToImageMapConverter mesh_to_image_map_converter(nh, private_nh);
 
   ros::spinOnce();
   // auto-call of service if "load_from_file"

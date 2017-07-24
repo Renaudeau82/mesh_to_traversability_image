@@ -1,7 +1,7 @@
 # mesh_to_traversability_image #
 ROS package containing 1 node :
 
-*  **mesh_to_traversability_image_node :** 
+*  **mesh_to_traversability_image_node :**  Compute the traverasbility as an image using reconstruction from voxblox
 
 ## Dependences ##
 
@@ -15,7 +15,9 @@ Launch rosbag (you have to use yours)
 
 dense_stereo (you have to use your calibration file .yaml)
 
-mesh_to_traversability_image_node
+voxblox_node (to build the 3D reconstruction)
+
+mesh_to_traversability_image_node (this pkg node)
 
 * **roslaunch pcd_to_traversability_image.launch :** 
 
@@ -27,7 +29,7 @@ open a .pcd or .ply file to compute traversability using mesh_to_traversability_
 
 * **file :** the file to open
 
-* **image_scale :** resolution of the image pixels/m
+* **image_scale :** resolution of the image (pixels/m)
 
 * **z_threshold :** if you want to threshold the altitude of the traversability
 
