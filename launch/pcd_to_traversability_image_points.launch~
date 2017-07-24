@@ -1,0 +1,28 @@
+<launch>
+
+<!-- ===== Conversion to Gridmap and Save it in rosbag =================================== -->
+    <node name="mesh_to_traversability_map_node" pkg="pkg_mesh_to_traversability_map" type="mesh_to_traversability_image_node" output="screen" >
+      <remap from="mesh" to="voxblox_node/pcl_mesh"/>
+      <param name="load_from_file" value="true" />
+      <param name="file" value="/home/eth/mesh.pcd"/>
+      <param name="save_to_file" value="false" />
+      <param name="verbose" value="true"/>
+      <param name="send_points" value="true"/>
+      <param name="automatic_pub" value="false"/>
+    </node>
+
+<!-- ===== Traversability image to graph =================================== -->
+<node name="traversability2graphGeneral" pkg="pkg_graph_general" type="mask2points_to_graphGeneral_node" output="screen" >
+<remap from="/image_mask" to="/image_traversability"/>
+<param name="delta" value="8"/>
+<param name="path" value="/home/eth/graphe_traversability.txt"/> 
+</node>
+
+<!-- ===== graph to metric graph =================================== -->
+<node name="metric_transform" pkg="pkg_graph_general" type="metric_transform">
+</node>
+
+<!-- ===== RVIZ =================================== -->
+<!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find pkg_mesh_to_traversability_map)/rviz/load_pcd.rviz"/> -->
+
+</launch>
