@@ -9,7 +9,7 @@ ROS package containing 1 node :
 
 ## Usage ##
 
-* **roslaunch mesh_to_traversability_image.launch :** use voxblox_node tu creat 3D mesh then subscrib to /mesh_pointcloud
+* **roslaunch mesh_to_traversability_image.launch :** use voxblox_node tu create 3D mesh then subscrib to /mesh_pointcloud
 
 Launch rosbag (you have to use yours) 
 
