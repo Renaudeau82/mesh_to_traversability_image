@@ -152,11 +152,10 @@ void MeshToImageMapConverter::meshCallback(const pcl::PointCloud<pcl::PointXYZRG
         if( point.data[2] < zmin) zmin = point.data[2];
         if( point.data[2] > zmax) zmax = point.data[2];
     }
-    image_scale_ = 20; // image scale in pixels/m
     int width = image_scale_*(xmax-xmin)+1;
     int height = image_scale_*(ymax-ymin)+1;
-    double zscale = 255/(zmax-zmin); // full scale grey
-    if (verbose_) ROS_INFO_STREAM("zone : "<<xmin<<"-"<<xmax<<" , "<<ymin<<"-"<<ymax<<" , "<<zmin<<"-"<<zmax<<" -> scale="<<image_scale_<<" ("<<width<<","<<height<<") zscale="<<zscale);
+    zscale_ = 255/(zmax-zmin); // full scale grey pixels/m
+    if (verbose_) ROS_INFO_STREAM("zone : "<<xmin<<"-"<<xmax<<" , "<<ymin<<"-"<<ymax<<" , "<<zmin<<"-"<<zmax<<" -> scale="<<image_scale_<<" ("<<width<<","<<height<<") zscale="<<zscale_);
     if(width < 0 || height < 0) return;
     cv::Mat mesh_img = cv::Mat::zeros(height, width, CV_8UC1);
     cv::Mat mesh_in = cv::Mat::zeros(height, width, CV_8UC1);
@@ -170,7 +169,7 @@ void MeshToImageMapConverter::meshCallback(const pcl::PointCloud<pcl::PointXYZRG
         if(y<0 || y>height-1) ROS_ERROR_STREAM("erreur en y : "<<y);
         if(x<0 || x>width-1) ROS_ERROR_STREAM("erreur en x : "<<x);
         //mesh_img.at<unsigned char>(y,x) = (unsigned char)(zscale*(cloud->points[i].data[2]-zmin));
-        cv::circle(mesh_img,cv::Point(x,y),2,(unsigned char)(zscale*(cloud->points[i].data[2]-zmin)),-1); // draw circle because voxblox voxel size is 0.1 m
+        cv::circle(mesh_img,cv::Point(x,y),2,(unsigned char)(zscale_*(cloud->points[i].data[2]-zmin)),-1); // draw circle because voxblox voxel size is 0.1 m
         mesh_in.at<unsigned char>(y,x) = 255;
     }
     // image processing to improve the results
@@ -193,13 +192,11 @@ void MeshToImageMapConverter::meshCallback(const pcl::PointCloud<pcl::PointXYZRG
     // gradiant
     int ddepth = CV_32F;
     cv::Mat grad_x, grad_y;
-    //cv::Sobel( modifiedImage, grad_x, ddepth, 1, 0, 3, 1, 0, cv::BORDER_DEFAULT );
-    //cv::Sobel( modifiedImage, grad_y, ddepth, 0, 1, 3, 1, 0, cv::BORDER_DEFAULT );
     cv::Scharr( modifiedImage, grad_x, ddepth, 1, 0, 1, 0, cv::BORDER_DEFAULT );
     cv::Scharr( modifiedImage, grad_y, ddepth, 0, 1, 1, 0, cv::BORDER_DEFAULT );
     cv::Mat gradiant = cv::Mat::zeros(modifiedImage.rows, modifiedImage.cols, CV_32F);
     cv::magnitude(grad_x,grad_y,gradiant);
-    cv::normalize(gradiant, gradiant,0.0, 255.0, cv::NORM_MINMAX, CV_32F);
+    //cv::normalize(gradiant, gradiant,0.0, 255.0, cv::NORM_MINMAX, CV_32F);
     //cv::normalize(gradiant, gradiant,0x00, 0xFF, cv::NORM_MINMAX, CV_8U);
     // smouthing the gradiant
     cv::GaussianBlur(gradiant,gradiant,cv::Size(3,3),0,0);
@@ -211,15 +208,19 @@ void MeshToImageMapConverter::meshCallback(const pcl::PointCloud<pcl::PointXYZRG
 
     // Compute the normals and store the z component in another image
     cv::Mat normal_z = cv::Mat::zeros(modifiedImage.rows, modifiedImage.cols, CV_32F);
+    double coef = image_scale_  * zscale_ / 16; // 16 for half the sum of scharr pattern
+    if (verbose_) ROS_INFO_STREAM("Coef = "<<coef);
     for (int i=0; i < modifiedImage.rows;i++)
     {
         for (int j=0; j < modifiedImage.cols;j++)
         {
-            double angle = std::atan(gradiant.at<float>(i,j)/15.0);
-            //Eigen::Vector3d normal(sin(gradiant.at<float>(i,j)/255.0) * sin(orientation.at<uchar>(i,j)*2*M_PI/255.0) , sin(gradiant.at<float>(i,j)/255.0) * cos(orientation.at<uchar>(i,j)*2*M_PI/255.0) , 1-gradiant.at<float>(i,j)/255.0);
-            Eigen::Vector3d normal(sin(angle) * sin(orientation.at<uchar>(i,j)*2*M_PI/255.0) , sin(angle) * cos(orientation.at<uchar>(i,j)*2*M_PI/255.0) , cos(angle));
-            normal.normalize();
-            normal_z.at<float>(i,j) = (float)normal.z();
+            if(modifiedImage.at<uchar>(i,j) != 0)
+            {
+                double angle = std::atan(gradiant.at<float>(i,j)/coef);
+                Eigen::Vector3d normal(sin(angle) * sin(orientation.at<uchar>(i,j)*2*M_PI/255.0) , sin(angle) * cos(orientation.at<uchar>(i,j)*2*M_PI/255.0) , cos(angle));
+                normal.normalize();
+                normal_z.at<float>(i,j) = (float)normal.z();
+            }
         }
     }
     //cv::normalize(normal_z, normal_z, 0x00, 0xFF, cv::NORM_MINMAX, CV_8U);
@@ -236,7 +237,7 @@ void MeshToImageMapConverter::meshCallback(const pcl::PointCloud<pcl::PointXYZRG
     {
         for (int j=0; j < modifiedImage.cols;j++)
         {
-            if(mesh_img.at<uchar>(i,j) < z_threshold_*zscale && mesh_in.at<uchar>(i,j)>0  && normal_z.at<float>(i,j) > 0.8) //
+            if(mesh_img.at<uchar>(i,j) < z_threshold_*zscale_ && mesh_in.at<uchar>(i,j)>0  && normal_z.at<float>(i,j) > 0.8) //
                 traversability_img.at<uchar>(i,j) = 255;
         }
     }
@@ -253,18 +254,18 @@ void MeshToImageMapConverter::meshCallback(const pcl::PointCloud<pcl::PointXYZRG
     //cv::imshow("traversability",traversability_img);
 
     // colorfull drawing
+    cv::normalize(gradiant, gradiant,0x00, 0xFF, cv::NORM_MINMAX, CV_8U);
     int amplify_magnitude = 20; // for a better visualisation
     for(unsigned int i=0;i<grad_x.rows;i++)
     {
         for(unsigned int j=0;j<grad_y.cols;j++)
         {
-            if(gradiant.at<float>(i,j)*amplify_magnitude < 255)
-                gradiant.at<float>(i,j) = gradiant.at<float>(i,j)*amplify_magnitude;
+            if(gradiant.at<uchar>(i,j)*amplify_magnitude < 255)
+                gradiant.at<uchar>(i,j) = gradiant.at<uchar>(i,j)*amplify_magnitude;
             else
-                gradiant.at<float>(i,j) = 255;
+                gradiant.at<uchar>(i,j) = 255;
         }
     }
-    cv::normalize(gradiant, gradiant,0x00, 0xFF, cv::NORM_MINMAX, CV_8U);
     cv::Mat fusion = cv::Mat::zeros(grad_x.rows, grad_y.cols, CV_8UC3);
     cv::cvtColor(fusion,fusion,cv::COLOR_BGR2HSV);
     for(unsigned int i=0;i<grad_x.rows;i++)
@@ -298,7 +299,7 @@ void MeshToImageMapConverter::meshCallback(const pcl::PointCloud<pcl::PointXYZRG
     msgTransform.data.push_back(ymin);
     msgTransform.data.push_back(1.0 / image_scale_);
     msgTransform.data.push_back(zmin);
-    msgTransform.data.push_back(1.0 / zscale);
+    msgTransform.data.push_back(1.0 / zscale_);
     transform_pub_.publish(msgTransform);
 
     /// publishing image_traversability

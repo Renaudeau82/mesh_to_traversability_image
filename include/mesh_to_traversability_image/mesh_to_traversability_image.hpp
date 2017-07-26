@@ -75,6 +75,7 @@ private:
   std::string file_;
   double image_scale_;
   double z_threshold_;
+  double zscale_;
 };
 
 

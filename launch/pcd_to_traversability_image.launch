@@ -2,8 +2,11 @@
 
 <!-- ===== Conversion to height image and compute traversability =================================== -->
 <node name="mesh_to_traversability_image_node" pkg="mesh_to_traversability_image" type="mesh_to_traversability_image_node" output="screen" >
+
 <param name="load_from_file" value="true" />
-<param name="file" value="/home/eth/mesh.pcd"/>
+<!-- <param name="file" value="$(find mesh_to_traversability_image)/pcd/mesh_building_geneva.pcd"/> -->
+<param name="file" value="$(find mesh_to_traversability_image)/pcd/mesh_grass_zurich.pcd"/>
+
 <param name="verbose" value="true"/>
 <param name="image_scale" value="20.0"/>
 <param name="z_threshold" value="1.5"/>
@@ -12,6 +15,6 @@
 
 
 <!-- ===== RVIZ =================================== -->
-<node name="rviz" pkg="rviz" type="rviz" args="-d $(find pkg_mesh_to_traversability_map)/rviz/load_pcd.rviz"/>
+<node name="rviz" pkg="rviz" type="rviz" args="-d $(find mesh_to_traversability_image)/rviz/load_pcd.rviz"/>
 
 </launch>
