@@ -1,7 +1,7 @@
 # mesh_to_traversability_image #
 ROS package containing 1 node :
 
-*  **mesh_to_traversability_image_node :**  Compute the traverasbility as an image using reconstruction from voxblox
+*  **mesh_to_traversability_image_node :**  Compute the traversability as an image using reconstruction from voxblox
 
 ## Dependences ##
 
@@ -9,7 +9,7 @@ ROS package containing 1 node :
 
 ## Usage ##
 
-* **roslaunch mesh_to_traversability_image.launch :** 
+* **roslaunch mesh_to_traversability_image.launch :** use voxblox_node tu creat 3D mesh then subscrib to /mesh_pointcloud
 
 Launch rosbag (you have to use yours) 
 
@@ -31,7 +31,7 @@ open a .pcd or .ply file to compute traversability using mesh_to_traversability_
 
 * **image_scale :** resolution of the image (pixels/m)
 
-* **z_threshold :** if you want to threshold the altitude of the traversability
+* **z_threshold :** The value to threshold the altitude of the traversability
 
-* **automatic_pub :** if false, you need to use service call for the publishment
+* **automatic_pub :** if false, you need to use service call (~/publish_srv) for the publishment
 
