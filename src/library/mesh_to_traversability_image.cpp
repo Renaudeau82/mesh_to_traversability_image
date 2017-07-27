@@ -172,8 +172,6 @@ void MeshToImageMapConverter::meshCallback(const pcl::PointCloud<pcl::PointXYZRG
         cv::circle(mesh_img,cv::Point(x,y),2,(unsigned char)(zscale_*(cloud->points[i].data[2]-zmin)),-1); // draw circle because voxblox voxel size is 0.1 m
         mesh_in.at<unsigned char>(y,x) = 255;
     }
-    // image processing to improve the results
-    //gammaCorrection(mesh_img, mesh_img, 2.0);
     cv::GaussianBlur(mesh_img,mesh_img,cv::Size(5,5),0,0);
     if(verbose_) cv::imshow("mesh_img",mesh_img);
     // fill the holes of the map
@@ -196,8 +194,6 @@ void MeshToImageMapConverter::meshCallback(const pcl::PointCloud<pcl::PointXYZRG
     cv::Scharr( modifiedImage, grad_y, ddepth, 0, 1, 1, 0, cv::BORDER_DEFAULT );
     cv::Mat gradiant = cv::Mat::zeros(modifiedImage.rows, modifiedImage.cols, CV_32F);
     cv::magnitude(grad_x,grad_y,gradiant);
-    //cv::normalize(gradiant, gradiant,0.0, 255.0, cv::NORM_MINMAX, CV_32F);
-    //cv::normalize(gradiant, gradiant,0x00, 0xFF, cv::NORM_MINMAX, CV_8U);
     // smouthing the gradiant
     cv::GaussianBlur(gradiant,gradiant,cv::Size(3,3),0,0);
 
@@ -206,7 +202,7 @@ void MeshToImageMapConverter::meshCallback(const pcl::PointCloud<pcl::PointXYZRG
     cv::phase(grad_x, grad_y, orientation,true);
     cv::normalize(orientation, orientation, 0x00, 0xFF, cv::NORM_MINMAX, CV_8U);
 
-    // Compute the normals and store the z component in another image
+    // normals
     cv::Mat normal_z = cv::Mat::zeros(modifiedImage.rows, modifiedImage.cols, CV_32F);
     double coef = image_scale_  * zscale_ / 16; // 16 for half the sum of scharr pattern
     if (verbose_) ROS_INFO_STREAM("Coef = "<<coef);
@@ -223,7 +219,6 @@ void MeshToImageMapConverter::meshCallback(const pcl::PointCloud<pcl::PointXYZRG
             }
         }
     }
-    //cv::normalize(normal_z, normal_z, 0x00, 0xFF, cv::NORM_MINMAX, CV_8U);
     time2 = ros::Time::now();
     duration = time2.toSec() - time1.toSec();
     if(verbose_) ROS_INFO_STREAM(duration<<"sec");
@@ -276,7 +271,7 @@ void MeshToImageMapConverter::meshCallback(const pcl::PointCloud<pcl::PointXYZRG
         }
     }
     cv::cvtColor(fusion,fusion,cv::COLOR_HSV2BGR);
-    if(verbose_) cv::imshow("fusion", fusion);
+    //cv::imshow("fusion", fusion);
     //cv::imshow("gradiant",gradiant);
     //cv::imshow("orientation",orientation);
     cv::normalize(normal_z, normal_z, 0x00, 0xFF, cv::NORM_MINMAX, CV_8U);
