@@ -312,14 +312,14 @@ void MeshToImageMapConverter::meshCallback(const pcl::PointCloud<pcl::PointXYZRG
 }
 
 
-//-------------- Methodes annexes ---------------------------//
+//-------------- Methodes usefull ---------------------------//
 std::string fileType(std::string fichier)
 {
-    // on découpe par rapport au "/" et on prend le dernier morceau
+    // cut the path on "/" and take the last part
     std::vector<std::string> tab;
     boost::split(tab, fichier, boost::is_any_of("/"));
     std::string nameExtension = tab[tab.size()-1];
-    // on redécoupe le dernier morceau pour lit l'extention, on prend le dernier morceau
+    // reading hte extension by cutting the name after the dot
     tab.clear();
     boost::split(tab, nameExtension, boost::is_any_of("."));
     std::string type = tab[1];
