@@ -119,16 +119,16 @@ void MeshToImageMapConverter::meshCallback(const pcl::PointCloud<pcl::PointXYZRG
     if (verbose_) ROS_INFO_STREAM(duration<<"sec");
 
     /// clean outliers (z<-0.6) (points might be under the ground at the landing points)
-    pcl::PointIndices::Ptr indices_in (new pcl::PointIndices());
-    pcl::ExtractIndices<pcl::PointXYZ> eifilter (false);
-    for (size_t i = 0; i < cloud->points.size(); ++i)
-    {
-      pcl::PointXYZ point = cloud->points[i];
-      if(point.data[2]>-0.6)
-          indices_in->indices.push_back(i);
-    }
-    eifilter.setIndices(indices_in);
-    eifilter.filterDirectly(cloud);
+//    pcl::PointIndices::Ptr indices_in (new pcl::PointIndices());
+//    pcl::ExtractIndices<pcl::PointXYZ> eifilter (false);
+//    for (size_t i = 0; i < cloud->points.size(); ++i)
+//    {
+//      pcl::PointXYZ point = cloud->points[i];
+//      if(point.data[2]>-0.6)
+//          indices_in->indices.push_back(i);
+//    }
+//    eifilter.setIndices(indices_in);
+//    eifilter.filterDirectly(cloud);
 
 //--------------------- PointCloud treatment ---------------------------------------------------//
 
